@@ -4,6 +4,7 @@
  */
 package javamysqlbench;
 
+import java.sql.DatabaseMetaData;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -15,6 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
 
 /**
  *
@@ -26,19 +29,61 @@ public class NewJFrame2 extends javax.swing.JFrame {
     private Statement stmt;
     private ResultSet rs;
     private String query; 
+    private DatabaseMetaData md;
     
     private String login;
     private String password;
     private String database;
     
     private Boolean foiEscrita = false;
+    
+    DefaultTreeModel modelo;
 
     /**
      * Creates new form NewJFrame2
      */
     public NewJFrame2() {
                 
-        initComponents();
+        initComponents();   
+    }
+    DefaultMutableTreeNode t_tabelas = new DefaultMutableTreeNode("Tabelas");
+    public void load_tree(){
+        try{
+            login = JavaMySQLBench.login;
+            password = JavaMySQLBench.password;
+            database = JavaMySQLBench.database;
+            
+            String url = "jdbc:mysql://localhost/"+database;
+            con = DriverManager.getConnection(url, login, password);
+            stmt = con.createStatement();
+            md = con.getMetaData();
+            String[] types = {"TABLE"};
+
+                //ResultSet tabelas = md.getTables("university", null, "%", types);
+                ResultSet tabelas = md.getTables(database, null, "%", types);
+                //pegando as tabelas "%" do banco "university"         
+                ResultSet colunas;
+                while (tabelas.next()) {
+                    DefaultMutableTreeNode t_xtabela = new DefaultMutableTreeNode(tabelas.getString("TABLE_NAME"));
+                    //cria nó representando uma tabela
+                    colunas = stmt.executeQuery("show columns from " + tabelas.getString("TABLE_NAME"));
+                    //Recebendo lista de colunas
+                    while (colunas.next()) {
+                        t_xtabela.add(new DefaultMutableTreeNode(colunas.getString(1)));
+                        //criando nós representando os campos
+
+                    }
+                    t_tabelas.add(t_xtabela);
+                }
+        }
+        catch(SQLException sqle){
+            System.out.println("erro bd: "+sqle);
+        }
+             
+               
+                modelo = (DefaultTreeModel) tree_tabelas.getModel();
+                modelo.setRoot(t_tabelas);
+                tree_tabelas.setModel(modelo);
     }
 
     /**
@@ -58,6 +103,8 @@ public class NewJFrame2 extends javax.swing.JFrame {
         TextAreaQuery = new javax.swing.JTextArea();
         jScrollPane3 = new javax.swing.JScrollPane();
         ResultsTable = new javax.swing.JTable();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        tree_tabelas = new javax.swing.JTree();
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -100,33 +147,41 @@ public class NewJFrame2 extends javax.swing.JFrame {
         ));
         jScrollPane3.setViewportView(ResultsTable);
 
+        javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("root");
+        tree_tabelas.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
+        jScrollPane4.setViewportView(tree_tabelas);
+        load_tree();
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 164, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 383, Short.MAX_VALUE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(ExecuteButton)
-                            .addComponent(jLabel1))
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                    .addComponent(jLabel1)
+                    .addComponent(ExecuteButton)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 526, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(ExecuteButton)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 275, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane4)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(ExecuteButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 275, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
 
@@ -257,6 +312,8 @@ public class NewJFrame2 extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JTable jTable1;
+    private javax.swing.JTree tree_tabelas;
     // End of variables declaration//GEN-END:variables
 }
