@@ -11,10 +11,19 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import javax.swing.JOptionPane;
 
+
+// Importing required classes to write a file 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 /**
  *
  * @author felipe
  */
+
+
+
 public class Login extends javax.swing.JFrame {
     private Connection con;
     private Statement stmt;
@@ -141,6 +150,21 @@ public class Login extends javax.swing.JFrame {
         }
         
         if (funcionou == true) {
+            
+            
+            try {
+                String text = JavaMySQLBench.login+"-"+JavaMySQLBench.password+"-"+JavaMySQLBench.database+"-";
+
+                // Defining the file name of the file
+                Path fileName = Path.of("login.txt");
+ 
+                // Writing into the file
+                Files.writeString(fileName, text);
+            }catch(Exception e) {
+                System.out.println(e);
+            }
+            
+            
             this.telaconsulta.setVisible(true);
             this.dispose();
         }

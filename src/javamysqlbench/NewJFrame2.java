@@ -8,10 +8,12 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLSyntaxErrorException;
 import java.sql.Statement;
 import java.sql.ResultSetMetaData;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -28,6 +30,8 @@ public class NewJFrame2 extends javax.swing.JFrame {
     private String login;
     private String password;
     private String database;
+    
+    private Boolean foiEscrita = false;
 
     /**
      * Creates new form NewJFrame2
@@ -103,7 +107,7 @@ public class NewJFrame2 extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 388, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 383, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(ExecuteButton)
@@ -192,9 +196,53 @@ public class NewJFrame2 extends javax.swing.JFrame {
                 ResultsTable.setModel(model);
             }
             
+        }catch (SQLSyntaxErrorException sqlsyntaxerror){
+            DefaultTableModel model = new DefaultTableModel();
+            model.addColumn("MySQL Syntax Error");
+            String[]errors = {""};
+            //System.out.println(sqlsyntaxerror.getMessage());
+            //errors[0] = sqlsyntaxerror.toString();
+            errors[0] = sqlsyntaxerror.getMessage();
+            model.addRow(errors);
+            ResultsTable.setModel(model);
         } catch (SQLException sqle){
-            System.out.println("erro sql: " + sqle);
+            
+            if(sqle.getErrorCode() == 0) {
+                //int rs = stmt.executeUpdate(query);
+                foiEscrita = true;
+            }else{
+                JOptionPane.showMessageDialog(null,sqle.toString());
+                //System.out.println("numero do erro "++"\n erro sql: " + sqle);
+            }
+                      
         }
+        
+        if (foiEscrita){
+            DefaultTableModel model = new DefaultTableModel();
+            
+            String[]cols = {""};
+            //System.out.println(sqlsyntaxerror.getMessage());
+            //errors[0] = sqlsyntaxerror.toString();
+            
+            
+            
+            try{
+                stmt = con.createStatement(rs.TYPE_SCROLL_INSENSITIVE, rs.CONCUR_READ_ONLY);
+                int updateResult  = stmt.executeUpdate(query);
+                model.addColumn("MySQL");
+                cols[0] = "Query executed! Code: " + updateResult;
+            }catch(SQLException sqle){
+                //JOptionPane.showMessageDialog(null,sqle.toString());
+                model.addColumn("Exception");
+                cols[0] = sqle.getMessage();
+            }
+            
+            model.addRow(cols);
+            ResultsTable.setModel(model);
+            
+        }
+        
+        foiEscrita = false;
     }//GEN-LAST:event_ExecuteButtonActionPerformed
 
     /**
