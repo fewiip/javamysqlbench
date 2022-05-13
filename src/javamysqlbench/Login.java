@@ -164,7 +164,7 @@ public class Login extends javax.swing.JFrame {
                 System.out.println(e);
             }
             
-            
+            this.telaconsulta.load_tree();
             this.telaconsulta.setVisible(true);
             this.dispose();
         }
